@@ -1,17 +1,22 @@
-var bbdata = JSON.parse(data)
-var metadata = bbdata.metadata
-var samples = bbdata.samples
-
-// select items from the html
+// select elements from the html
 var demoPanel = d3.select("#sample-metadata")
 var select = d3.select("#selDataset")
 
-// populate drop down list with IDs from the data
-bbdata.names.forEach((item, i) => {
-  var option = select.append("option")
-  option.text(item)
-  option.property("value",item)
-});
+async function getData() {
+  let data = await d3.json("./static/data/samples.json")
+  fillDropDown(data)
+  return data
+}
+const promise = getData()
+
+// fill drop down list with IDs from the data
+function fillDropDown(data){
+  data.names.forEach((item, i) => {
+    var option = select.append("option")
+    option.text(item)
+    option.property("value",item)
+  })
+}
 
 // fill the demographic information
 function fillDemoPanel(info){
@@ -24,7 +29,7 @@ function fillDemoPanel(info){
   // for each pair
   Object.entries(info).forEach(([key, value]) => {
     var listItem = infoList.append("li")
-    listItem.text(`${key} : ${value}`)
+    listItem.html(`<b>${key}:</b> ${value}`)
     listItem.attr("class","list-group-item")
     listItem.attr("style","border: none")
   })
@@ -93,11 +98,15 @@ function drawBubblePlot(sample){
 }
 
 function optionChanged(value){
-  var demoData = metadata.find(x => x.id == value)
-  fillDemoPanel(demoData)
-  drawGaugePlot(demoData.wfreq)
-  var sample = samples.find(x => x.id == value)
-  drawBarPlot(sample)
-  drawBubblePlot(sample)
-  console.log(sample)
+  promise.then(d => {
+    var metadata = d.metadata
+    var samples = d.samples
+    var demoData = metadata.find(x => x.id == value)
+    fillDemoPanel(demoData)
+    drawGaugePlot(demoData.wfreq)
+    var sample = samples.find(x => x.id == value)
+    drawBarPlot(sample)
+    drawBubblePlot(sample)
+    console.log(sample)
+  })
 }

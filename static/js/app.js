@@ -35,6 +35,7 @@ function fillDemoPanel(info){
   })
 }
 
+// construct gauge plot using washing frequency variable
 function drawGaugePlot(wfreq){
   var trace = {
     value: wfreq,
@@ -51,13 +52,19 @@ function drawGaugePlot(wfreq){
   Plotly.newPlot("gauge",[trace])
 }
 
+// draw a bar plot of the top 10 otu samples
 function drawBarPlot(sample){
+  // get the sample values
   var samples = sample.sample_values.slice(0,10)
   samples.reverse()
+  // get the otu ids
   var otu_ids = sample.otu_ids.slice(0,10)
   otu_ids.reverse()
+  // get the labels
   var otu_labels = sample.otu_labels.slice(0,10)
   otu_labels.reverse()
+  // construct the trace for a horizontal bar plot
+  // using sample values and ids
   var trace = {
     x: samples,
     y: otu_ids.map(x => `OTU ${x}`),
@@ -73,12 +80,15 @@ function drawBarPlot(sample){
   Plotly.newPlot("bar",[trace],layout)
 }
 
+// construct bubble plot of sample values vs otu id
 function drawBubblePlot(sample){
   var trace = {
     x: sample.otu_ids,
     y: sample.sample_values,
     text: sample.otu_labels,
     mode: "markers",
+    // map size to sample value
+    // map color to otu id
     marker: {
       size: sample.sample_values,
       color: sample.otu_ids,
@@ -86,6 +96,7 @@ function drawBubblePlot(sample){
     },
     type: "scatter",
   }
+  // label the axes
   var layout = {
     xaxis: {
       title: "OTU ID"
@@ -97,13 +108,17 @@ function drawBubblePlot(sample){
   Plotly.newPlot("bubble",[trace],layout)
 }
 
+// populate the page when subject is selected
 function optionChanged(value){
+  // wait for the promise to return data
   promise.then(d => {
     var metadata = d.metadata
     var samples = d.samples
+    // find the metadata for the selected id
     var demoData = metadata.find(x => x.id == value)
     fillDemoPanel(demoData)
     drawGaugePlot(demoData.wfreq)
+    // find the sample values for the selected id
     var sample = samples.find(x => x.id == value)
     drawBarPlot(sample)
     drawBubblePlot(sample)
